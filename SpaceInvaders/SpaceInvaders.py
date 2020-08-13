@@ -2,7 +2,7 @@
 #Made with Visual Studio Code
 #Python 3.8.5 on Windows
 import turtle
-import os
+import winsound
 import math
 import random
 
@@ -112,6 +112,7 @@ def fire_bullet():
     #Declare bulletstate as a global if it needs changed
     global bulletstate
     if bulletstate == "ready":
+        winsound.PlaySound("assets/laser.wav", winsound.SND_ASYNC)
         bulletstate = "fire"
         #Move the bullet to the just above the player
         x = player.xcor()
@@ -163,6 +164,7 @@ while True:
 
         #Check for a collision between the bullet and the enemy
         if isCollision(bullet, enemy):
+            winsound.PlaySound("assets/explosion.wav", winsound.SND_ASYNC)
             #Reset the bullet
             bullet.hideturtle()
             bulletstate = "ready"
