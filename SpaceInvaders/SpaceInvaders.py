@@ -34,6 +34,9 @@ border_pen.hideturtle()
 # Set the score to 0
 score = 0
 
+
+is_paused = False
+
 # Draw the score
 score_pen = turtle.Turtle()
 score_pen.speed(0)
@@ -137,6 +140,15 @@ def isCollision(t1, t2):
         return False
 
 
+def toggle_pause():
+    global is_paused
+    is_paused = not is_paused
+
+
+wn.listen()
+wn.onkeypress(toggle_pause, "p")
+
+
 # Create keyboard bindings
 turtle.listen()
 turtle.onkeypress(move_left, "Left")
@@ -145,67 +157,70 @@ turtle.onkey(fire_bullet, "space")
 
 # Main game loop
 while True:
+    if not is_paused:
+        for enemy in enemies:
 
-    for enemy in enemies:
+            # Move the enemy
+            x = enemy.xcor()
+            x += enemyspeed
+            enemy.setx(x)
 
-        # Move the enemy
-        x = enemy.xcor()
-        x += enemyspeed
-        enemy.setx(x)
+            # Move the enemy back and down
+            if enemy.xcor() > 280:
+                # Moves all enemies down
+                for e in enemies:
+                    y = e.ycor()
+                    y -= 40
+                    e.sety(y)
+                # Change enemy direction
+                enemyspeed *= -1
 
-        # Move the enemy back and down
-        if enemy.xcor() > 280:
-            # Moves all enemies down
-            for e in enemies:
-                y = e.ycor()
-                y -= 40
-                e.sety(y)
-            # Change enemy direction
-            enemyspeed *= -1
+            if enemy.xcor() < -280:
+                # Moves all enemies down
+                for e in enemies:
+                    y = e.ycor()
+                    y -= 40
+                    e.sety(y)
+                # Change enemy direction
+                enemyspeed *= -1
 
-        if enemy.xcor() < -280:
-            # Moves all enemies down
-            for e in enemies:
-                y = e.ycor()
-                y -= 40
-                e.sety(y)
-            # Change enemy direction
-            enemyspeed *= -1
+            # Check for a collision between the bullet and the enemy
+            if isCollision(bullet, enemy):
+                winsound.PlaySound("assets/explosion.wav", winsound.SND_ASYNC)
+                # Reset the bullet
+                bullet.hideturtle()
+                bulletstate = "ready"
+                bullet.setposition(0, -400)
+                # Reset the enemy
+                x = random.randint(-200, 200)
+                y = random.randint(100, 250)
+                enemy.setposition(x, y)
+                # Update the score
+                score += 10
+                scorestring = "Score: %s" % score
+                score_pen.clear()
+                score_pen.write(
+                    scorestring, False, align="left",
+                    font=("Arial", 14, "normal")
+                    )
 
-        # Check for a collision between the bullet and the enemy
-        if isCollision(bullet, enemy):
-            winsound.PlaySound("assets/explosion.wav", winsound.SND_ASYNC)
-            # Reset the bullet
+            if isCollision(player, enemy):
+                player.hideturtle()
+                enemy.hideturtle()
+                print("Game Over")
+                break
+
+        # Move the bullet
+        if bulletstate == "fire":
+            y = bullet.ycor()
+            y += bulletspeed
+            bullet.sety(y)
+
+        # Check to see if the bullet has gone to the top
+        if bullet.ycor() > 275:
             bullet.hideturtle()
             bulletstate = "ready"
-            bullet.setposition(0, -400)
-            # Reset the enemy
-            x = random.randint(-200, 200)
-            y = random.randint(100, 250)
-            enemy.setposition(x, y)
-            # Update the score
-            score += 10
-            scorestring = "Score: %s" % score
-            score_pen.clear()
-            score_pen.write(
-                scorestring, False, align="left", font=("Arial", 14, "normal")
-                )
-
-        if isCollision(player, enemy):
-            player.hideturtle()
-            enemy.hideturtle()
-            print("Game Over")
-            break
-
-    # Move the bullet
-    if bulletstate == "fire":
-        y = bullet.ycor()
-        y += bulletspeed
-        bullet.sety(y)
-
-    # Check to see if the bullet has gone to the top
-    if bullet.ycor() > 275:
-        bullet.hideturtle()
-        bulletstate = "ready"
+    else:
+        wn.update()
 
 delay = input("Press enter to finish.")
